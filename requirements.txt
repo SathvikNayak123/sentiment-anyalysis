@@ -14,3 +14,5 @@ tf-keras==2.16.0
 boto3
 python-dotenv
 docker
+apache-airflow
+apache-airflow-providers-amazon

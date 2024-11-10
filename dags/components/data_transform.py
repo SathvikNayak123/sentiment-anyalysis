@@ -10,7 +10,7 @@ from transformers import pipeline
 from datasets import Dataset
 import logging
 import re
-from utils import Utils
+from components.utils import Utils
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

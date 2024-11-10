@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from components.predict import SentimentPredictor
+from dags.components.predict import SentimentPredictor
 
 app = Flask(__name__)
 

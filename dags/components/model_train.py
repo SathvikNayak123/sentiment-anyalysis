@@ -1,6 +1,6 @@
 import tensorflow as tf
 from transformers import TFDistilBertForSequenceClassification
-from utils import Utils
+from components.utils import Utils
 
 class ModelTrainer:
     def __init__(self, bucket, model_key):
