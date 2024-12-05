@@ -30,7 +30,7 @@ This project focuses on building a sentiment analysis model to predict the senti
 
 - **Deployment**:  
   - Built a user-friendly **Flask application** for making predictions.
-    ![Flask](docs/Screenshot 2024-09-29 171650.png)
+    ![Flask](docs/Screenshot%202024-09-29%20171650.png)
 
 - **Workflow Automation**:  
   - Integrated **Apache Airflow** to automate the entire pipeline. 
