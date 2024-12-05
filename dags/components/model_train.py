@@ -1,6 +1,8 @@
 import tensorflow as tf
 from transformers import TFDistilBertForSequenceClassification
 from components.utils import Utils
+from sklearn.utils.class_weight import compute_class_weight
+import numpy as np
 
 class ModelTrainer:
     def __init__(self, bucket, model_key):
@@ -39,6 +41,19 @@ class ModelTrainer:
         )
         print("Model initialized successfully.")
 
+    def calculate_class_weights(self):
+        """
+        Calculates class weights for handling class imbalance.
+        """
+
+        labels = self.train_df["Sentiment"]
+        class_weights = compute_class_weight(
+            class_weight="balanced",
+            classes=np.unique(labels),
+            y=labels
+        )
+        return dict(enumerate(class_weights))
+
     def train(self, epochs=50):
         """
         Trains the model using the training and validation datasets.
@@ -48,6 +63,7 @@ class ModelTrainer:
             self.train_df,
             validation_data=self.val_df,
             epochs=epochs,
+            class_weight=self.calculate_class_weights(),
             callbacks=[self.early_stopping]
         )
         print("Model training completed.")
