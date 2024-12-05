@@ -29,11 +29,6 @@ class DataProcessor:
         self.stop_words = set(stopwords.words('english'))
         self.lemmatizer = WordNetLemmatizer()
 
-        self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-        self.candidate_labels = ['positive', 'negative', 'neutral']
-        DetectorFactory.seed = 0
-        self.class_weights = {'positive': 1.0,'negative': 1.0,'neutral': 10.0}
-
         self.amazon_df = None
         self.utils = Utils()
 
@@ -78,26 +73,18 @@ class DataProcessor:
         final_count = len(self.amazon_df)
         print(f"Preprocessing complete. Dropped {initial_count - final_count} non-English or empty reviews.")
 
-    def classify_reviews(self):
-        dataset = Dataset.from_pandas(self.amazon_df[['Cleaned_Reviews']])
+    def map_to_sentiment(rating):
+        if rating <= 2:
+            return 0
+        elif 2 < rating < 4:
+            return 1
+        else:
+            return 2
 
-        def classify_batch(batch):
-            result = self.classifier(batch['Cleaned_Reviews'], self.candidate_labels, multi_label=False)
-            adjusted_pseudo_labels = []
-            for res in result:
-                labels = res['labels']
-                scores = res['scores']
-                adjusted_scores = [score * self.class_weights[label] for label, score in zip(labels, scores)]
+    def clean_rating(self):
+        self.amazon_df["Cleaned_Rating"] = [float(rating.split()[0]) for rating in self.amazon_df["Rating"]]
 
-                pseudo_label = labels[adjusted_scores.index(max(adjusted_scores))]
-                adjusted_pseudo_labels.append(pseudo_label)
-            return {'Pseudo_Labels': adjusted_pseudo_labels}
-
-        # Apply the classification in batches using the map function
-        dataset = dataset.map(classify_batch, batched=True, batch_size=16)  
-        # Convert back to DataFrame
-        classified_df = dataset.to_pandas()
-        return classified_df[['Cleaned_Reviews', 'Pseudo_Labels']]
+        self.amazon_df["Sentiment"] = self.amazon_df["Cleaned_Rating"].apply(self.map_to_sentiment)
 
     def ProcessReviews(self):
         """
@@ -106,13 +93,17 @@ class DataProcessor:
         print("Starting preprocessing of reviews...")
         self.apply_preprocessing()
         print("Preprocessing done. Starting classification of reviews...")
-        classified_df = self.classify_reviews()
+        self.clean_rating()
         print("Classification done.")
-        return classified_df
+        return self.amazon_df[["Cleaned_Reviews", "Sentiment"]]
 
     def save_cleaned_data_to_s3(self, classified_df):
         return self.utils.put_data_s3(classified_df, self.bucket, self.clean_key)
     
+
+
+
+
 class Split_Tokenize_Data:
     def __init__(self, bucket=None, clean_key=None, train_key=None, val_key=None, test_key=None):
 
@@ -122,7 +113,6 @@ class Split_Tokenize_Data:
         self.val_key = val_key
         self.test_key = test_key
 
-        self.label_map = {'positive': 2, 'neutral': 1, 'negative': 0}
         self.tokenizer = None
 
         self.utils = Utils()
@@ -135,17 +125,15 @@ class Split_Tokenize_Data:
         """
         Maps labels and splits the data into training, validation, and testing sets.
         """
-        print("Preprocessing data...")
-        self.clean_df['Pseudo_Labels'] = self.clean_df['Pseudo_Labels'].map(self.label_map)
         
         sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-        for train_index, test_index in sss.split(self.clean_df, self.clean_df['Pseudo_Labels']):
+        for train_index, test_index in sss.split(self.clean_df, self.clean_df['Sentiment']):
             train_df = self.clean_df.iloc[train_index]
             test_df = self.clean_df.iloc[test_index]
         print(f"Train size: {len(train_df)}, Test size: {len(test_df)}")
         
         sss_val = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-        for train_index, val_index in sss_val.split(train_df, train_df['Pseudo_Labels']):
+        for train_index, val_index in sss_val.split(train_df, train_df['Sentiment']):
             train_split_df = train_df.iloc[train_index]
             val_df = train_df.iloc[val_index]
         print(f"Training size: {len(train_split_df)}, Validation size: {len(val_df)}")
@@ -175,17 +163,17 @@ class Split_Tokenize_Data:
         
         train_dataset = tf.data.Dataset.from_tensor_slices((
             dict(train_encodings),
-            train_df['Pseudo_Labels'].values
+            train_df['Sentiment'].values
         )).shuffle(10000).batch(batch_size)
         
         val_dataset = tf.data.Dataset.from_tensor_slices((
             dict(val_encodings),
-            val_df['Pseudo_Labels'].values
+            val_df['Sentiment'].values
         )).batch(batch_size)
         
         test_dataset = tf.data.Dataset.from_tensor_slices((
             dict(test_encodings),
-            test_df['Pseudo_Labels'].values
+            test_df['Sentiment'].values
         )).batch(batch_size)
         
         print("Datasets created successfully.")

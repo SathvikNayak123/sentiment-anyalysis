@@ -50,11 +50,12 @@ dag = DAG(
 
 def scrape_reviews():
     obj = ScrapeData(scraping_url, chromedriver_path)
-    obj.scrapeReviews(20000)
+    obj.scrapeReviews(100000)
     logger.info("---Data Collection Complete---")
 
     os.makedirs("artifacts", exist_ok=True)
-    amazon_df = pd.DataFrame(obj.amazon_reviews, columns=["Review"])
+    data = [{"Review": review, "Rating": rating} for review, rating in zip(obj.amazon_reviews, obj.amazon_ratings)]
+    amazon_df = pd.DataFrame(data)
     amazon_df.to_csv("artifacts/amazon_data.csv", index=False)
 
     util = Utils()
@@ -64,8 +65,8 @@ def scrape_reviews():
 def preprocess_and_classify_reviews():
     data_processor = DataProcessor(bucket=bucket_name, raw_key=raw_data_key, clean_key=clean_data_key)
     data_processor.import_data_from_s3()  # Load raw data
-    classified_df = data_processor.ProcessReviews()  # Process and classify reviews
-    data_processor.save_cleaned_data_to_s3(classified_df)  # Save processed data to S3
+    clean_df = data_processor.ProcessReviews()  # Process and classify reviews
+    data_processor.save_cleaned_data_to_s3(clean_df)  # Save processed data to S3
 
 def split_and_tokenize_data():
     split_tokenizer = Split_Tokenize_Data(

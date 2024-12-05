@@ -9,6 +9,7 @@ import os
 class ScrapeData:
     def __init__(self,url,path):
         self.amazon_reviews=[]
+        self.amazon_ratings=[]
         self.count=0
         self.max_reviews=100
         self.base_url='https://amazon.com'
@@ -46,9 +47,15 @@ class ScrapeData:
                         time.sleep(2)
 
                         while self.count < max_reviews:
-                            all_reviews = self.driver.find_elements(By.XPATH, f"//span[@data-hook='review-body']")
+                            # Get All Reviews
+                            all_reviews = self.driver.find_elements(By.XPATH, f"//div[@data-hook='review']")
                             for review in all_reviews:
-                                self.amazon_reviews.append(review.text.strip())
+                                # Get Rating
+                                rating = review.find_element(By.XPATH, f"//i[@data-hook='review-star-rating']")
+                                self.amazon_ratings.append(rating.text.strip())
+                                # Get Review Body
+                                content = review.find_element(By.XPATH, f"//span[@data-hook='review-body']")
+                                self.amazon_reviews.append(content.text.strip())
                                 self.count += 1
                                 print(f"Scraped {self.count} reviews.")
 

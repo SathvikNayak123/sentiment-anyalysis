@@ -26,8 +26,8 @@ class SentimentPredictor:
         
         logits = self.model(**self.input).logits
         prediction = np.argmax(logits, axis=1).numpy()[0]
-
-        predicted_label = self.tokenize.label_map[prediction]
+        label_map = {0: "negative", 1: "neutral", 2: "positive"}
+        predicted_label = label_map[prediction]
         return predicted_label
 
     
