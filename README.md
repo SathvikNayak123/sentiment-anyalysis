@@ -5,6 +5,21 @@ This project focuses on building a sentiment analysis model to predict the senti
 
 ---
 
+## What is DistilBERT?
+
+- DistilBERT is a smaller, faster, and more efficient version of BERT. It was developed through a process called knowledge distillation, where a smaller model (the student) is trained to reproduce the behavior of a larger model (the teacher) while retaining most of its performance. 
+- DistilBERT retains 97% of BERT's performance on various NLP tasks while being 40% smaller and 60% faster.
+
+  ![DistilBERT](docs/0_06fQisdQnb_BPajl.png)
+
+- BERT consists of 12 transformer layers, an embedding layer and a prediction layer.
+- During distillation, DistilBERT learns from BERT by mimicking its outputs (logits) and intermediate representations.
+- As a resilt, DistilBERT has 6 transformer layers (half of BERT's 12 layers) while maintaining similar functionality.
+
+  ![BERT&DistilBERT](docs/The-DistilBERT-model-architecture-and-components.png)
+
+---
+
 ## Features  
 - **Data Collection**:  
   - Scraped 20,000+ Amazon reviews using **Selenium WebDriver**.  
@@ -41,7 +56,11 @@ This project focuses on building a sentiment analysis model to predict the senti
 ## Result
 
 - Accuracy: Achieved an accuracy of 95% on the test dataset.
-    ![Result](docs/download.png)
+- Enhanced multi-class classification performance by implementing class-weighted training, improving the Precision-Recall AUC for minority classes (e.g., 'neutral') by over 30%, resulting in more balanced and accurate predictions across all categories
+  Before: 
+    ![Before](docs/output.png)
+  After class-weighted training:
+    ![After](docs/download.png)
 
 ## Getting Started  
 
