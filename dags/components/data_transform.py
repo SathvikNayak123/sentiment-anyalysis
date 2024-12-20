@@ -73,7 +73,7 @@ class DataProcessor:
         final_count = len(self.amazon_df)
         print(f"Preprocessing complete. Dropped {initial_count - final_count} non-English or empty reviews.")
 
-    def map_to_sentiment(rating):
+    def map_to_sentiment(self, rating):
         if rating <= 2:
             return 0
         elif 2 < rating < 4:
@@ -100,9 +100,6 @@ class DataProcessor:
     def save_cleaned_data_to_s3(self, classified_df):
         return self.utils.put_data_s3(classified_df, self.bucket, self.clean_key)
     
-
-
-
 
 class Split_Tokenize_Data:
     def __init__(self, bucket=None, clean_key=None, train_key=None, val_key=None, test_key=None):
