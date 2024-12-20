@@ -85,7 +85,7 @@ def train_and_evaluate_model():
     trainer = ModelTrainer(bucket=bucket_name, model_key=model_key)
     trainer.initialize_model()
     trainer.train(epochs=epochs)
-    trainer.evaluate()
+    #trainer.evaluate()
     trainer.save_model()
 
 # Define tasks

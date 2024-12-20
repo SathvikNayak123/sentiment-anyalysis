@@ -55,7 +55,8 @@ This project focuses on building a sentiment analysis model to predict the senti
 
 ## Result
 
-- Accuracy: Achieved an accuracy of 92% on the test dataset.
+- **Accuracy**: Achieved an accuracy of 85% on the test dataset.
+- **F1-score**: Achieved f1-scores of 0.9 for positive class and 0.7 for others on the test dataset.
 - Enhanced multi-class classification performance by implementing class-weighted training, improving the Precision-Recall AUC for minority classes (e.g., 'neutral') by over 30%, resulting in more balanced and accurate predictions across all categories
   - Before: 
     ![Before](docs/output.png)
